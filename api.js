@@ -94,7 +94,7 @@ app.post('/api/solve', upload.single('screenshot'), async (req, res) => {
               {
                 type: 'input_image',
                 image_url: publicImageUrl,
-                detail: 'auto', //Specify detail level (low, high, or auto)
+                detail: 'auto', // Specify detail level (low, high, or auto)
               },
             ],
           },
@@ -111,8 +111,6 @@ app.post('/api/solve', upload.single('screenshot'), async (req, res) => {
     // Log the full response from OpenAI
     console.log('OpenAI API Response:', response.data);
 
-    
-
     // Extract the response text from the `output` array
     const output = response.data.output;
     let solution = 'No solution provided by OpenAI.';
@@ -122,27 +120,41 @@ app.post('/api/solve', upload.single('screenshot'), async (req, res) => {
       if (Array.isArray(output[0].content)) {
         // If `content` is an array, join the strings or extract text from objects
         solution = output[0].content
-          .map((item) => (typeof item === 'string' ? item : JSON.stringify(item)))
+          .map((item) => {
+            if (typeof item === 'string') {
+              return item;
+            } else if (typeof item === 'object' && item.type === 'output_text') {
+              return item.text; // Extract the `text` field from the object
+            } else {
+              return JSON.stringify(item);
+            }
+          })
           .join(' ');
+      } else if (typeof output[0].content === 'string') {
+        solution = output[0].content;
+      } else if (typeof output[0].content === 'object' && output[0].content.type === 'output_text') {
+        solution = output[0].content.text; // Extract the `text` field from the object
       } else {
-        // If `content` is not an array, convert it to a string
-        solution = typeof output[0].content === 'string'
-          ? output[0].content
-          : JSON.stringify(output[0].content);
+        solution = JSON.stringify(output[0].content);
       }
+    }
+
+    // Parse the solution if it's still a JSON string
+    try {
+      solution = JSON.parse(solution).text || solution;
+    } catch (e) {
+      // If parsing fails, keep the solution as-is
     }
 
     console.log('Solution received:', solution);
 
-
+    // Send the solution back to the client
+    res.json({ solution });
 
     // Delete the local file after processing
     fs.unlink(filePath, (err) => {
       if (err) console.error('Failed to delete local file:', err);
     });
-
-    // Send the solution back to the client
-    res.json({ solution });
   } catch (error) {
     console.error('Error processing screenshot:', error.response?.data || error.message || error);
     res.status(500).json({ error: 'Failed to process screenshot' });
