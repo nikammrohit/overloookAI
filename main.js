@@ -2,6 +2,8 @@ const { app, BrowserWindow, globalShortcut, ipcMain } = require('electron');
 const path = require('path');
 const screenshot = require('screenshot-desktop');
 const fs = require('fs');
+const axios = require('axios'); // Import axios for HTTP requests
+const FormData = require('form-data'); // Import FormData for multipart requests
 
 let mainWindow;
 
@@ -23,17 +25,37 @@ app.whenReady().then(() => {
   globalShortcut.register('Command+Left', () => moveWindow(-50, 0)); // Move left
   globalShortcut.register('Command+Right', () => moveWindow(50, 0)); // Move right
 
-  // Register global hotkey (Command+H to take a screenshot)
+  // Register global hotkey (Command+H to take a screenshot and send it to the backend)
   globalShortcut.register('Command+H', async () => {
     try {
       const img = await screenshot(); // Capture the screen
       const filePath = path.join(app.getPath('temp'), 'screenshot.png');
       fs.writeFileSync(filePath, img); // Save the screenshot temporarily
 
-      // Send the file path to the renderer process
-      mainWindow.webContents.send('screenshot-taken', filePath);
+      console.log('Screenshot saved at:', filePath);
+
+      // Send the screenshot to the backend API
+      const formData = new FormData();
+      formData.append('screenshot', fs.createReadStream(filePath)); // Attach the screenshot file
+
+      const response = await axios.post('http://localhost:3000/api/solve', formData, {
+        headers: {
+          ...formData.getHeaders(), // Set the correct headers for multipart/form-data
+        },
+      });
+
+      console.log('Solution received from backend:', response.data.solution);
+
+      // Send the solution to the renderer process
+      mainWindow.webContents.send('solution-received', response.data.solution);
+
+      // Delete the temporary screenshot file
+      fs.unlinkSync(filePath);
     } catch (error) {
-      console.error('Failed to take screenshot:', error);
+      console.error('Failed to process screenshot:', error.message || error);
+
+      // Send error message to the renderer process
+      mainWindow.webContents.send('solution-error', error.message || 'Failed to process screenshot');
     }
   });
 
