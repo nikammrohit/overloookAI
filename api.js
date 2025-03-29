@@ -108,9 +108,33 @@ app.post('/api/solve', upload.single('screenshot'), async (req, res) => {
       }
     );
 
-    // Extract the response text
-    const solution = response.data.output_text;
+    // Log the full response from OpenAI
+    console.log('OpenAI API Response:', response.data);
+
+    
+
+    // Extract the response text from the `output` array
+    const output = response.data.output;
+    let solution = 'No solution provided by OpenAI.';
+
+    if (output && output.length > 0 && output[0].content) {
+      // Check if `content` is an array of strings or objects
+      if (Array.isArray(output[0].content)) {
+        // If `content` is an array, join the strings or extract text from objects
+        solution = output[0].content
+          .map((item) => (typeof item === 'string' ? item : JSON.stringify(item)))
+          .join(' ');
+      } else {
+        // If `content` is not an array, convert it to a string
+        solution = typeof output[0].content === 'string'
+          ? output[0].content
+          : JSON.stringify(output[0].content);
+      }
+    }
+
     console.log('Solution received:', solution);
+
+
 
     // Delete the local file after processing
     fs.unlink(filePath, (err) => {
