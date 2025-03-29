@@ -27,8 +27,8 @@ const App = () => {
 
   const solveProblem = async (filePath) => {
     const formData = new FormData();
-    formData.append('screenshot', filePath);
-
+    formData.append('screenshot', new Blob([filePath], { type: 'image/png' })); // Ensure the file is sent as a Blob
+  
     const res = await fetch('http://localhost:3000/api/solve', {
       method: 'POST',
       body: formData,
@@ -39,7 +39,6 @@ const App = () => {
 
   return (
     <div className="bg-gray-900 bg-opacity-90 h-screen flex flex-col items-center justify-center text-white p-4">
-      <h1 className="text-2xl mb-4">💡 Ask AI Anything!</h1>
       <p>⌘+b to hide/show</p>
       <p>⌘+q to quit</p>
       <p>⌘ ↑↓←→ to move</p>

@@ -45,20 +45,61 @@ app.post('/api/ask', async (req, res) => {
 
 // Endpoint to handle screenshot uploads and process them
 app.post('/api/solve', upload.single('screenshot'), async (req, res) => {
+
+  console.log('Endpoint /api/solve hit'); // Add this log
+  console.log('Request received'); // Debugging log
+  console.log('File received:', req.file); // Debugging log
+
+  if (!req.file) {
+    console.log('No file uploaded'); // Debugging log
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+
   const { path: filePath } = req.file;
 
   try {
-    // Simulate processing the screenshot (e.g., OCR or AI-based analysis)
-    const solution = `Processed screenshot at ${filePath}`;
+    // Read the uploaded image and convert it to Base64
+    const base64Image = fs.readFileSync(filePath, 'base64');
+    console.log('Base64 image generated'); // Debugging log
+
+    // Send the image to OpenAI for processing
+    const apiKey = process.env.OPENAI_API_KEY;
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: 'Solve the questions in this image.',
+          },
+          {
+            role: 'user',
+            content: `data:image/jpeg;base64,${base64Image}`,
+          },
+        ],
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    // Extract the response text
+    const solution = response.data.choices[0].message.content;
 
     // Optionally delete the file after processing
     fs.unlink(filePath, (err) => {
       if (err) console.error('Failed to delete file:', err);
     });
 
+    // Send the solution back to the client
     res.json({ solution });
   } catch (error) {
-    console.error('Error processing screenshot:', error);
+    console.error('Error processing screenshot:', error.response?.data || error.message || error);
     res.status(500).json({ error: 'Failed to process screenshot' });
   }
 });
