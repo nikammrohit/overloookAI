@@ -84,9 +84,9 @@ const App = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center glass text-base-content p-4"// Set background with 60% opacity
+    <div className="h-screen flex flex-col items-center justify-center bg-neutral text-base-content p-4"// Set background with 60% opacity
     >
-      <div className="card glass w-full max-w-4xl h-full max-h-4xl overflow-auto">
+      <div className="card w-full max-w-4xl h-full max-h-4xl overflow-auto">
         <div className="card-body">
           <h2 className="card-title text-center text-gray-500 text-2xl">Overlook AI</h2>
           <div className="flex flex-row justify-between w-full">
