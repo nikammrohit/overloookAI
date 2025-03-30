@@ -68,7 +68,7 @@ app.whenReady().then(() => {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 600,
+    width: 500,
     height: 400,
     frame: false,
     transparent: true,

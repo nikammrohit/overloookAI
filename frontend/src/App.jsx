@@ -84,38 +84,55 @@ const App = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center text-white p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }} // Set background with 80% opacity
+    <div className="h-screen flex flex-col items-center justify-center glass text-base-content p-4"// Set background with 60% opacity
     >
-      <p className="text-white">⌘+b to hide/show</p>
-      <p className="text-white">⌘+q to quit</p>
-      <p className="text-white">⌘ ↑↓←→ to move</p>
-      <p className="text-white">⌘+h to screenshot and solve</p>
-      <textarea
-        className="w-72 p-2 text-black rounded-lg"
-        placeholder="Type your question here..."
-        value={question}
-        onChange={(e) => setQuestion(e.target.value)}
-      />
-      <button
-        onClick={fetchAnswer}
-        className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        Get Answer
-      </button>
-      {loading && <p className="mt-4 text-yellow-500">Loading...</p>}
-      {error && <p className="mt-4 text-red-500">{error}</p>}
-      {response && (
-        <div className="mt-4 bg-gray-800 p-4 rounded">
-          <h3 className="text-lg">Response:</h3>
-          <pre className="whitespace-pre-wrap">{response}</pre> {/* Preserve formatting */}
+      <div className="card glass w-full max-w-4xl h-full max-h-4xl overflow-auto">
+        <div className="card-body">
+          <h2 className="card-title text-center text-gray-500 text-2xl">Overlook AI</h2>
+          <div className="flex flex-row justify-between w-full">
+            {/* Left side */}
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-600">⌘ + b to hide/show</p>
+              <p className="text-gray-600">⌘ + q to quit</p>
+            </div>
+
+            {/* Right side */}
+            <div className="flex flex-col gap-2">
+              <p className="text-gray-600">⌘ + ↑↓←→ to move</p>
+              <p className="text-gray-600">⌘ + h to screenshot and solve</p>
+            </div>
+          </div>
+          <textarea
+            className="textarea textarea-bordered w-full mt-4 text-gray-500"
+            placeholder="Type your question here..."
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
+          <div className="card-actions justify-end mt-4">
+            <button
+              onClick={fetchAnswer}
+              className={`btn btn-primary ${loading ? 'loading' : ''}`}
+              disabled={loading}
+            >
+              {loading ? 'Loading...' : 'Get Answer'}
+            </button>
+          </div>
+          {error && <p className="alert alert-error mt-4">{error}</p>}
+          {response && (
+            <div className="alert alert-success mt-4 w-full max-h-64 overflow-auto">
+              <h3 className="text-lg">Response:</h3>
+              <pre className="whitespace-pre-wrap">{response}</pre> {/* Preserve formatting */}
+            </div>
+          )}
+          {screenshotPath && (
+            <div className="alert alert-info mt-4 w-full">
+              <h2 className="text-lg">Screenshot Path:</h2>
+              <p>{screenshotPath}</p>
+            </div>
+          )}
+
         </div>
-      )}
-      {screenshotPath && (
-        <div className="mt-4 bg-gray-800 p-4 rounded">
-          <h2 className="text-lg">Screenshot Path:</h2>
-          <p>{screenshotPath}</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
