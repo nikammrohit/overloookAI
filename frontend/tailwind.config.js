@@ -6,8 +6,6 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [require("daisyui")],
-  daisyui: {
-    themes: ["light", "dark", "night", "pastel"], // Add more DaisyUI themes
-  },
+  plugins: [],
+  important: true, // Make Tailwind CSS styles important
 };
