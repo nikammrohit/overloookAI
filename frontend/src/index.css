@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: rgba(0, 0, 0, 0.6); /* Uniform background with 80% opacity */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -28,6 +28,7 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6) !important; /* Uniform background with 80% opacity */
 }
 
 h1 {
@@ -54,11 +55,10 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background-color: rgba(0, 0, 0, 0.4) !important; /* 40% opacity */
+  background-color: rgba(0, 0, 0, 0.6) !important; /* Uniform background with 80% opacity */
 }

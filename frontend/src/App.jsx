@@ -84,11 +84,12 @@ const App = () => {
   };
 
   return (
-    <div className="bg-gray-900 bg-opacity-90 h-screen flex flex-col items-center justify-center text-white p-4">
-      <p>⌘+b to hide/show</p>
-      <p>⌘+q to quit</p>
-      <p>⌘ ↑↓←→ to move</p>
-      <p>⌘+h to screenshot and solve</p>
+    <div className="h-screen flex flex-col items-center justify-center text-white p-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.6)' }} // Set background with 80% opacity
+    >
+      <p className="text-white">⌘+b to hide/show</p>
+      <p className="text-white">⌘+q to quit</p>
+      <p className="text-white">⌘ ↑↓←→ to move</p>
+      <p className="text-white">⌘+h to screenshot and solve</p>
       <textarea
         className="w-72 p-2 text-black rounded-lg"
         placeholder="Type your question here..."
