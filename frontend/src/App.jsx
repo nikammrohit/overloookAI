@@ -6,11 +6,9 @@ const App = () => {
   const [screenshotPath, setScreenshotPath] = useState('');
   const [loading, setLoading] = useState(false); // Add loading state
   const [error, setError] = useState(''); // Add error state
-  const [logs, setLogs] = useState([]); // Add logs state to store console logs
 
-  // Helper function to add logs
-  const addLog = (message) => {
-    setLogs((prevLogs) => [...prevLogs, message]); // Append new log to the logs array
+  // Helper function to log messages to the console
+  const logToConsole = (message) => {
     console.log(message); // Log to the browser console (Inspect Element)
   };
 
@@ -20,7 +18,7 @@ const App = () => {
       if (window.electron.onScreenshotTaken) {
         window.electron.onScreenshotTaken((filePath) => {
           setScreenshotPath(filePath);
-          addLog(`Screenshot saved at: ${filePath}`);
+          logToConsole(`Screenshot saved at: ${filePath}`);
           solveProblem(filePath); // Send the screenshot to the backend
         });
       }
@@ -28,14 +26,14 @@ const App = () => {
       if (window.electron.onSolutionReceived) {
         window.electron.onSolutionReceived((solution) => {
           setResponse(solution); // Update the response state with the solution
-          addLog(`Solution received: ${solution}`);
+          logToConsole(`Solution received: ${solution}`);
         });
       }
 
       if (window.electron.onSolutionError) {
         window.electron.onSolutionError((errorMessage) => {
           setError(errorMessage); // Update the error state with the error message
-          addLog(`Error received: ${errorMessage}`);
+          logToConsole(`Error received: ${errorMessage}`);
         });
       }
     }
@@ -44,7 +42,7 @@ const App = () => {
   const fetchAnswer = async () => {
     setLoading(true);
     setError('');
-    addLog('Fetching answer...');
+    logToConsole('Fetching answer...');
     try {
       const res = await fetch('http://localhost:3000/api/ask', {
         method: 'POST',
@@ -53,10 +51,10 @@ const App = () => {
       });
       const data = await res.json();
       setResponse(data.answer);
-      addLog(`Answer received: ${data.answer}`);
+      logToConsole(`Answer received: ${data.answer}`);
     } catch (err) {
       setError('Failed to fetch answer.');
-      addLog('Failed to fetch answer.');
+      logToConsole('Failed to fetch answer.');
     } finally {
       setLoading(false);
     }
@@ -65,7 +63,7 @@ const App = () => {
   const solveProblem = async (filePath) => {
     setLoading(true);
     setError('');
-    addLog('Sending screenshot to backend...');
+    logToConsole('Sending screenshot to backend...');
     try {
       const formData = new FormData();
       formData.append('screenshot', new Blob([filePath], { type: 'image/png' })); // Ensure the file is sent as a Blob
@@ -76,10 +74,10 @@ const App = () => {
       });
       const data = await res.json();
       setResponse(data.solution);
-      addLog(`Solution received: ${data.solution}`);
+      logToConsole(`Solution received: ${data.solution}`);
     } catch (err) {
       setError('Failed to solve the problem.');
-      addLog('Failed to solve the problem.');
+      logToConsole('Failed to solve the problem.');
     } finally {
       setLoading(false);
     }
@@ -117,14 +115,6 @@ const App = () => {
           <p>{screenshotPath}</p>
         </div>
       )}
-      <div className="mt-4 bg-gray-800 p-4 rounded w-full max-w-lg">
-        <h2 className="text-lg">Console Logs:</h2>
-        <div className="text-sm whitespace-pre-wrap max-h-40 overflow-y-auto">
-          {logs.map((log, index) => (
-            <p key={index}>{log}</p>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
