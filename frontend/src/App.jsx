@@ -6,6 +6,7 @@ const App = () => {
   const [screenshotPath, setScreenshotPath] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [dragging, setDragging] = useState(false); // State to track drag-and-drop
 
   const logToConsole = (message) => {
     console.log(message);
@@ -14,20 +15,33 @@ const App = () => {
   useEffect(() => {
     if (window.electron) {
       if (window.electron.onScreenshotTaken) {
-        window.electron.onScreenshotTaken((filePath) => {
+        window.electron.onScreenshotTaken(async (filePath) => {
           setScreenshotPath(filePath);
           logToConsole(`Screenshot saved at: ${filePath}`);
-          solveProblem(filePath);
+  
+          try {
+            // Read the file from the path using Electron's IPC method
+            const fileDataBase64 = await window.electron.readFile(filePath); // Custom IPC method
+            const fileData = Uint8Array.from(atob(fileDataBase64), (c) => c.charCodeAt(0)); // Convert base64 to Uint8Array
+            const fileName = filePath.split('/').pop(); // Extract file name from path
+            const file = new File([fileData], fileName, { type: 'image/png' });
+  
+            // Send the file to the backend
+            solveProblem(file);
+          } catch (err) {
+            setError('Failed to read screenshot file.');
+            logToConsole('Failed to read screenshot file:', err);
+          }
         });
       }
-
+  
       if (window.electron.onSolutionReceived) {
         window.electron.onSolutionReceived((solution) => {
           setResponse(solution);
           logToConsole(`Solution received: ${solution}`);
         });
       }
-
+  
       if (window.electron.onSolutionError) {
         window.electron.onSolutionError((errorMessage) => {
           setError(errorMessage);
@@ -58,13 +72,13 @@ const App = () => {
     }
   };
 
-  const solveProblem = async (filePath) => {
+  const solveProblem = async (file) => {
     setLoading(true);
     setError('');
     logToConsole('Sending screenshot to backend...');
     try {
       const formData = new FormData();
-      formData.append('screenshot', new Blob([filePath], { type: 'image/png' }));
+      formData.append('screenshot', file);
 
       const res = await fetch('http://localhost:3000/api/solve', {
         method: 'POST',
@@ -81,9 +95,39 @@ const App = () => {
     }
   };
 
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'image/png') {
+      setScreenshotPath(file.name); // Set the file name
+      logToConsole(`File dropped: ${file.name}`);
+      solveProblem(file); // Send the file to the backend
+    } else {
+      setError('Only PNG files are supported.');
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col items-center justify-center custom-glass p-4">
-      <div className="w-full max-w-4xl h-full max-h-4xl overflow-auto rounded-lg p-6">
+    <div
+      className={`h-screen flex flex-col items-center justify-center custom-glass p-4 ${
+        dragging ? 'border-4 border-dashed border-blue-500' : ''
+      }`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      <div className="w-full max-w-4xl h-full max-h-4xl overflow-auto rounded-lg p-6 shadow-lg">
         <h2 className="text-center text-gray-500 text-2xl font-semibold">Overlook AI</h2>
         <div className="flex flex-row justify-between w-full mt-4">
           {/* Left side */}
